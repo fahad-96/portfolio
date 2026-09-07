@@ -1,0 +1,1436 @@
+/* ============================================================
+   Fahad Yousuf, portfolio styles
+   Tokens, then layout section by section.
+============================================================ */
+:root {
+    --bg: #050505;
+    --bg-2: #0b0b0e;
+    --ink: #f4f3ef;
+    --ink-dim: rgba(244, 243, 239, .55);
+    --ink-faint: rgba(244, 243, 239, .32);
+    --accent: #8a7cff;
+    --accent-2: #c7c0ff;
+    --line: rgba(244, 243, 239, .10);
+    --line-2: rgba(244, 243, 239, .22);
+    --gutter: clamp(1.25rem, 4vw, 4rem);
+    --font-d: 'Space Grotesk', sans-serif;
+    --font-b: 'Inter', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a30 var(--bg);
+    overflow-x: clip;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2a2a30;
+    border-radius: 3px;
+}
+
+::selection {
+    background: var(--accent);
+    color: #050505;
+}
+
+body {
+    font-family: var(--font-b);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+:focus-visible {
+    outline: 1px dashed var(--accent);
+    outline-offset: 4px;
+}
+
+.mono {
+    font-family: var(--font-m);
+    font-size: .7rem;
+    font-weight: 400;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+}
+
+.skip {
+    position: fixed;
+    top: -100px;
+    left: 1rem;
+    z-index: 200;
+    background: var(--ink);
+    color: var(--bg);
+    padding: .6rem 1.2rem;
+    border-radius: 4px;
+    transition: top .3s;
+}
+
+.skip:focus {
+    top: 1rem;
+}
+
+/* ============================================================
+   Fixed atmosphere layers: canvas, vignette, grain, progress
+============================================================ */
+#gl {
+    position: fixed;
+    inset: 0;
+    /* explicit size so the canvas stretches to the viewport instead of
+       falling back to its intrinsic drawing-buffer size; 100% (not 100vw)
+       avoids counting the scrollbar, which would re-introduce overflow */
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 90% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, .55) 100%);
+}
+
+.grain {
+    position: fixed;
+    inset: -60%;
+    width: 220%;
+    height: 220%;
+    z-index: 80;
+    pointer-events: none;
+    opacity: .045;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>');
+    animation: grain 9s steps(8) infinite;
+}
+
+@keyframes grain {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-3%, 2%); }
+    50% { transform: translate(2%, -3%); }
+    75% { transform: translate(-2%, -2%); }
+    100% { transform: translate(3%, 3%); }
+}
+
+.progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    z-index: 90;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+.page-meta {
+    position: fixed;
+    left: var(--gutter);
+    bottom: 1.4rem;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    color: var(--ink-faint);
+    font-size: .62rem;
+    mix-blend-mode: difference;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .5s ease;
+}
+
+.page-meta.show {
+    opacity: 1;
+}
+
+.page-meta b {
+    color: var(--ink);
+    font-weight: 400;
+}
+
+.page-meta-sep {
+    display: block;
+    width: 28px;
+    height: 1px;
+    background: var(--line-2);
+}
+
+/* ============================================================
+   Preloader
+============================================================ */
+#loader {
+    display: none;
+}
+
+.js #loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.loader-name {
+    color: var(--ink-faint);
+}
+
+.loader-count {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(3rem, 9vw, 6rem);
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Header and navigation
+============================================================ */
+.site-head {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 75;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem var(--gutter);
+    mix-blend-mode: difference;
+}
+
+.brand {
+    color: var(--ink);
+}
+
+.head-nav {
+    display: flex;
+    gap: 2.2rem;
+}
+
+.head-nav a {
+    color: var(--ink-dim);
+    transition: color .35s;
+}
+
+.head-nav a:hover {
+    color: var(--ink);
+}
+
+.menu-btn {
+    display: none;
+    color: var(--ink);
+    letter-spacing: .22em;
+}
+
+/* fullscreen menu for small screens */
+.menu {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: #070708;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 var(--gutter);
+    clip-path: inset(0 0 100% 0);
+    visibility: hidden;
+    transition: clip-path .7s cubic-bezier(.76, 0, .24, 1), visibility 0s .7s;
+}
+
+.menu-open .menu {
+    clip-path: inset(0 0 0% 0);
+    visibility: visible;
+    transition: clip-path .7s cubic-bezier(.76, 0, .24, 1);
+}
+
+.menu nav {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+}
+
+.menu nav a {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 9vw, 4rem);
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .5s, transform .5s;
+}
+
+.menu-open .menu nav a {
+    opacity: 1;
+    transform: none;
+}
+
+.menu nav a:nth-child(1) { transition-delay: .15s; }
+.menu nav a:nth-child(2) { transition-delay: .2s; }
+.menu nav a:nth-child(3) { transition-delay: .25s; }
+.menu nav a:nth-child(4) { transition-delay: .3s; }
+.menu nav a:nth-child(5) { transition-delay: .35s; }
+
+.menu nav a .mono {
+    color: var(--accent);
+    font-size: .65rem;
+}
+
+.menu-foot {
+    position: absolute;
+    bottom: 2rem;
+    left: var(--gutter);
+    right: var(--gutter);
+    display: flex;
+    justify-content: space-between;
+    color: var(--ink-faint);
+}
+
+.menu-foot a {
+    color: var(--ink-dim);
+}
+
+/* ============================================================
+   Hero
+============================================================ */
+main {
+    position: relative;
+    z-index: 2;
+}
+
+.hero {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: 7rem var(--gutter) 5rem;
+    position: relative;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr auto;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 6rem);
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+.hero-name {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(3rem, 8.5vw, 8rem);
+    line-height: .92;
+    letter-spacing: -.025em;
+    text-transform: uppercase;
+    margin: 1.3rem 0 1.4rem;
+}
+
+.hero-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: .04em;
+}
+
+.ch {
+    display: inline-block;
+    will-change: transform;
+}
+
+.hero-role {
+    font-family: var(--font-d);
+    font-weight: 500;
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    color: var(--ink);
+    margin-bottom: 1rem;
+}
+
+.role-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+
+#role {
+    display: inline-block;
+    color: var(--accent);
+}
+
+.hero-tag {
+    max-width: 42ch;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-foot {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scroll-hint {
+    color: var(--ink-faint);
+    animation: hint 2.6s ease-in-out infinite;
+}
+
+@keyframes hint {
+    0%, 100% { opacity: .35; }
+    50% { opacity: .9; }
+}
+
+.hero-socials {
+    display: flex;
+    gap: 1.6rem;
+}
+
+.hero-socials a {
+    color: var(--ink-dim);
+    transition: color .35s;
+}
+
+.hero-socials a:hover {
+    color: var(--ink);
+}
+
+/* ============================================================
+   Hero portrait: gradient ring plus orbiting socials.
+   The 3D particle sphere sits behind this and lifts off it on scroll.
+============================================================ */
+.hero-portrait {
+    display: flex;
+    justify-content: center;
+}
+
+.profile-card {
+    position: relative;
+    width: clamp(220px, 24vw, 320px);
+    aspect-ratio: 1;
+}
+
+.profile-card::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--accent), var(--accent-2), var(--accent));
+    background-size: 300% 300%;
+    animation: ringShift 5s ease infinite;
+}
+
+.profile-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--bg);
+}
+
+.profile-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    z-index: 2;
+    transition: transform .5s ease;
+}
+
+.profile-card:hover .profile-img {
+    transform: scale(1.04);
+}
+
+@keyframes ringShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 152%;
+    height: 152%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed var(--line-2);
+    border-radius: 50%;
+    z-index: 3;
+    pointer-events: none;
+    animation: orbitSpin 38s linear infinite;
+}
+
+@keyframes orbitSpin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.orbit a {
+    --s: 46px;
+    pointer-events: auto;
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(244, 243, 239, .07);
+    border: 1px solid var(--line-2);
+    color: rgba(244, 243, 239, .88);
+    backdrop-filter: blur(6px);
+    animation: orbitIcon 38s linear infinite;
+    transition: color .35s, border-color .35s, background .35s, transform .35s;
+}
+
+/* icons counter rotate so they always read upright while the ring spins */
+@keyframes orbitIcon {
+    from { rotate: 0deg; }
+    to { rotate: -360deg; }
+}
+
+.orbit a svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.orbit a:hover {
+    color: #0a0a0a;
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.12);
+}
+
+.orbit a:nth-child(1) {
+    top: 0;
+    left: 50%;
+    margin-top: calc(var(--s) / -2);
+    margin-left: calc(var(--s) / -2);
+}
+
+.orbit a:nth-child(2) {
+    top: 50%;
+    right: 0;
+    margin-top: calc(var(--s) / -2);
+    margin-right: calc(var(--s) / -2);
+}
+
+.orbit a:nth-child(3) {
+    bottom: 0;
+    left: 50%;
+    margin-bottom: calc(var(--s) / -2);
+    margin-left: calc(var(--s) / -2);
+}
+
+.orbit a:nth-child(4) {
+    top: 50%;
+    left: 0;
+    margin-top: calc(var(--s) / -2);
+    margin-left: calc(var(--s) / -2);
+}
+
+.profile-card:hover .orbit,
+.profile-card:hover .orbit a {
+    animation-play-state: paused;
+}
+
+/* ============================================================
+   Shared section scaffolding
+============================================================ */
+.sec {
+    padding: clamp(6rem, 13vh, 11rem) var(--gutter);
+    position: relative;
+}
+
+.wrap {
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+/* Text scrim: a soft pool of the page background painted behind every
+   block of copy. The aura keeps drifting through the sections, but under
+   the words it fades to a faint glow so the text always stays readable.
+   Pure gradient, no backdrop-filter, so it costs nothing on phones. */
+.about-bio,
+.edu,
+.xp-body,
+.xp-when,
+.work-info,
+.skill-col,
+.spoken,
+.resume-band,
+.contact-lede,
+.mega-link,
+.channels {
+    position: relative;
+    isolation: isolate;
+}
+
+.about-bio::before,
+.edu::before,
+.xp-body::before,
+.xp-when::before,
+.work-info::before,
+.skill-col::before,
+.spoken::before,
+.resume-band::before,
+.contact-lede::before,
+.mega-link::before,
+.channels::before {
+    content: '';
+    position: absolute;
+    inset: -2rem -2.5rem;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(ellipse 100% 100% at 50% 50%,
+            rgba(5, 5, 5, .94) 0%,
+            rgba(5, 5, 5, .86) 40%,
+            rgba(5, 5, 5, .55) 70%,
+            rgba(5, 5, 5, 0) 100%);
+}
+
+/* The resume band paints its own surface, so a tighter, squarer scrim */
+.resume-band::before {
+    inset: -1rem;
+    border-radius: 24px;
+}
+
+.sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 1.4rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.3rem;
+    margin-bottom: clamp(2.5rem, 6vh, 5rem);
+}
+
+.sec-idx {
+    color: var(--accent);
+}
+
+.sec-head h2 {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 6.5vw, 5.2rem);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    text-transform: uppercase;
+    overflow: hidden;
+    padding-bottom: .06em;
+}
+
+.lede {
+    font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+    line-height: 1.55;
+    font-weight: 400;
+    color: var(--ink);
+    max-width: 30ch;
+}
+
+.lede em,
+.bio-sub em {
+    font-style: normal;
+    color: var(--accent);
+}
+
+/* ============================================================
+   About
+============================================================ */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: clamp(3rem, 7vw, 7rem);
+    align-items: start;
+}
+
+.bio-sub {
+    margin-top: 2rem;
+    color: var(--ink-dim);
+    max-width: 46ch;
+}
+
+.edu {
+    list-style: none;
+}
+
+.edu li {
+    border-top: 1px solid var(--line);
+    padding: 1.4rem 0;
+    transition: padding-left .45s cubic-bezier(.22, 1, .36, 1);
+}
+
+.edu li:hover {
+    padding-left: .9rem;
+}
+
+.edu-year {
+    color: var(--accent);
+    display: block;
+    margin-bottom: .5rem;
+}
+
+.edu h3 {
+    font-family: var(--font-d);
+    font-weight: 500;
+    font-size: 1.15rem;
+    margin-bottom: .25rem;
+}
+
+.edu p {
+    color: var(--ink-dim);
+    font-size: .92rem;
+}
+
+/* ============================================================
+   Experience
+============================================================ */
+.xp {
+    list-style: none;
+}
+
+.xp-row {
+    display: grid;
+    grid-template-columns: minmax(200px, .55fr) 1.45fr;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    border-top: 1px solid var(--line);
+    padding: clamp(1.8rem, 3.5vh, 2.6rem) 0;
+    transition: padding-left .45s cubic-bezier(.22, 1, .36, 1);
+}
+
+.xp-row:last-child {
+    border-bottom: 1px solid var(--line);
+}
+
+.xp-row:hover {
+    padding-left: .9rem;
+}
+
+.xp-when {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    color: var(--accent);
+    padding-top: .35rem;
+}
+
+.xp-loc {
+    color: var(--ink-faint);
+}
+
+.xp-title {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    margin-bottom: .35rem;
+}
+
+.xp-org {
+    color: var(--ink);
+    font-size: .96rem;
+    margin-bottom: 1rem;
+}
+
+.xp-sep {
+    color: var(--ink-faint);
+    margin: 0 .35rem;
+}
+
+.xp-desc {
+    color: var(--ink-dim);
+    max-width: 56ch;
+    font-size: .96rem;
+    margin-bottom: 1.2rem;
+}
+
+.xp-body .work-stat {
+    display: block;
+    margin-bottom: 1.2rem;
+}
+
+.xp-body .tags {
+    margin-bottom: 0;
+}
+
+/* ============================================================
+   Work
+============================================================ */
+.work-cat {
+    color: var(--ink-faint);
+    margin: 3.5rem 0 .5rem;
+}
+
+.work-cat:first-of-type {
+    margin-top: 0;
+}
+
+.work-row {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: center;
+    padding: clamp(2.2rem, 5vh, 3.8rem) 0;
+    border-top: 1px solid var(--line);
+}
+
+.work-row:nth-of-type(even) .work-media {
+    order: 2;
+}
+
+/* Screenshots are framed as small windows so they sit *in* the scene
+   rather than on top of it: a hairline border, a faux browser bar, a soft
+   violet glow that echoes the aura, and a dark vignette overlay that melts
+   the bright edges into the background. */
+.work-media {
+    --bar: 30px;
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    box-shadow:
+        0 1px 0 rgba(244, 243, 239, .06) inset,
+        0 30px 60px -30px rgba(0, 0, 0, .9),
+        0 0 0 1px rgba(0, 0, 0, .6),
+        0 0 80px -20px rgba(138, 124, 255, .18);
+    transition: border-color .6s ease, box-shadow .6s ease;
+}
+
+.work-row:hover .work-media {
+    border-color: rgba(199, 192, 255, .32);
+    box-shadow:
+        0 1px 0 rgba(244, 243, 239, .08) inset,
+        0 36px 70px -28px rgba(0, 0, 0, .9),
+        0 0 0 1px rgba(0, 0, 0, .6),
+        0 0 110px -18px rgba(138, 124, 255, .32);
+}
+
+/* faux browser bar: three traffic-light dots and a hairline underneath */
+.work-media::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: var(--bar);
+    z-index: 3;
+    background:
+        radial-gradient(circle at 16px 50%, rgba(244, 243, 239, .28) 4px, transparent 5px),
+        radial-gradient(circle at 32px 50%, rgba(244, 243, 239, .18) 4px, transparent 5px),
+        radial-gradient(circle at 48px 50%, rgba(244, 243, 239, .12) 4px, transparent 5px),
+        linear-gradient(rgba(14, 14, 18, .96), rgba(11, 11, 14, .96));
+    border-bottom: 1px solid var(--line);
+}
+
+/* vignette plus violet cast: darkens the screenshot toward its edges and
+   bottom so it fades into the page instead of ending in a hard bright edge */
+.work-media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 5, 5, 0) 45%, rgba(5, 5, 5, .55) 100%),
+        radial-gradient(120% 90% at 50% 40%, rgba(5, 5, 5, 0) 55%, rgba(5, 5, 5, .5) 100%),
+        linear-gradient(135deg, rgba(138, 124, 255, .14), rgba(138, 124, 255, 0) 55%);
+    transition: opacity .7s ease;
+}
+
+.work-row:hover .work-media::after {
+    opacity: .75;
+}
+
+.pwrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--bar);
+    bottom: 0;
+    overflow: hidden;
+    transition: transform .9s cubic-bezier(.22, 1, .36, 1);
+}
+
+.work-row:hover .pwrap {
+    transform: scale(1.035);
+}
+
+.pwrap img {
+    position: absolute;
+    left: 0;
+    top: -10%;
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    object-position: top;
+    filter: grayscale(40%) brightness(.72) contrast(1.05) saturate(.9);
+    transition: filter .7s ease;
+}
+
+.work-row:hover .pwrap img {
+    filter: grayscale(0%) brightness(.9) contrast(1.03) saturate(1);
+}
+
+.work-idx {
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: .9rem;
+}
+
+.work-title {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -.01em;
+    margin-bottom: 1rem;
+}
+
+.work-desc {
+    color: var(--ink-dim);
+    max-width: 48ch;
+    margin-bottom: 1.4rem;
+    font-size: .96rem;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.6rem;
+}
+
+.tags span {
+    font-family: var(--font-m);
+    font-size: .6rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: .4em 1em;
+}
+
+.work-stat {
+    display: block;
+    color: var(--accent);
+    margin-bottom: 1.6rem;
+}
+
+.work-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-family: var(--font-m);
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding-bottom: .35rem;
+    border-bottom: 1px solid var(--line-2);
+    transition: border-color .4s, gap .4s;
+}
+
+.work-link:hover {
+    border-color: var(--accent);
+    gap: 1rem;
+}
+
+/* ============================================================
+   Skills
+============================================================ */
+.skill-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 4vw, 4rem);
+}
+
+.skill-col h3 {
+    font-family: var(--font-m);
+    font-size: .68rem;
+    font-weight: 400;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+}
+
+.skill-col ul {
+    list-style: none;
+}
+
+.skill-col li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: .85rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding-left .4s cubic-bezier(.22, 1, .36, 1);
+}
+
+.skill-col li:hover {
+    padding-left: .7rem;
+}
+
+.skill-col li .lvl {
+    font-family: var(--font-m);
+    font-size: .6rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+}
+
+.spoken {
+    margin-top: 3.5rem;
+    color: var(--ink-faint);
+    line-height: 2.2;
+}
+
+.spoken b {
+    font-weight: 400;
+    color: var(--ink-dim);
+}
+
+/* ============================================================
+   Resume
+============================================================ */
+.resume-band {
+    text-align: center;
+    padding: clamp(2rem, 6vh, 4rem) 0;
+}
+
+.resume-band h3 {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: clamp(1.8rem, 4.5vw, 3.4rem);
+    letter-spacing: -.02em;
+    margin-bottom: 1.2rem;
+}
+
+.resume-band p {
+    color: var(--ink-dim);
+    max-width: 52ch;
+    margin: 0 auto 2.4rem;
+}
+
+.btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-family: var(--font-m);
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 1.05rem 2.2rem;
+    transition: color .45s, border-color .45s;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ink);
+    border-radius: 999px;
+    transform: translateY(102%);
+    transition: transform .55s cubic-bezier(.65, 0, .35, 1);
+}
+
+.btn:hover {
+    color: #0a0a0a;
+    border-color: var(--ink);
+}
+
+.btn:hover::after {
+    transform: translateY(0);
+}
+
+.btn.btn-solid {
+    background: var(--ink);
+    color: #0a0a0a;
+    border-color: var(--ink);
+}
+
+.btn.btn-solid::after {
+    background: var(--accent);
+}
+
+.btn.btn-solid:hover {
+    color: #0a0a0a;
+    border-color: var(--accent);
+}
+
+/* ============================================================
+   Contact
+============================================================ */
+.contact-lede {
+    color: var(--ink-dim);
+    max-width: 52ch;
+    margin-bottom: clamp(3rem, 7vh, 5rem);
+}
+
+.mega-link {
+    display: block;
+    font-family: var(--font-d);
+    font-weight: 700;
+    font-size: clamp(2.8rem, 10.5vw, 9rem);
+    line-height: .98;
+    letter-spacing: -.02em;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--ink);
+    transition: color .55s ease;
+    margin-bottom: clamp(3rem, 8vh, 5.5rem);
+    width: fit-content;
+}
+
+.mega-link:hover {
+    color: var(--ink);
+}
+
+.mega-link .arrow {
+    display: inline-block;
+    color: var(--accent);
+    -webkit-text-stroke: 0;
+    transition: transform .55s cubic-bezier(.22, 1, .36, 1);
+}
+
+.mega-link:hover .arrow {
+    transform: translate(.12em, -.12em);
+}
+
+.channels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+}
+
+.channel {
+    background: var(--bg);
+    padding: 1.7rem 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: background .4s;
+}
+
+.channel .mono {
+    color: var(--ink-dim);
+    transition: color .4s;
+}
+
+.channel .ch-arrow {
+    color: var(--ink-faint);
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform .45s cubic-bezier(.22, 1, .36, 1), color .4s;
+}
+
+.channel:hover {
+    background: #0e0e12;
+}
+
+.channel:hover .mono {
+    color: var(--ink);
+}
+
+.channel:hover .ch-arrow {
+    color: var(--accent);
+    transform: translate(.3em, -.3em);
+}
+
+/* ============================================================
+   Footer
+============================================================ */
+.footer {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid var(--line);
+    padding: 2rem var(--gutter);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    color: var(--ink-faint);
+}
+
+.footer .mono {
+    font-size: .62rem;
+}
+
+.footer a:hover {
+    color: var(--ink);
+}
+
+/* ============================================================
+   Custom cursor (fine pointers only)
+============================================================ */
+.cursor-dot,
+.cursor-ring {
+    display: none;
+}
+
+@media (pointer: fine) {
+    .has-cursor,
+    .has-cursor * {
+        cursor: none !important;
+    }
+
+    .has-cursor .cursor-dot {
+        display: block;
+        position: fixed;
+        top: -3px;
+        left: -3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ink);
+        z-index: 120;
+        pointer-events: none;
+    }
+
+    .has-cursor .cursor-ring {
+        display: block;
+        position: fixed;
+        top: -17px;
+        left: -17px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--ink-faint);
+        z-index: 119;
+        pointer-events: none;
+        transition: width .35s, height .35s, top .35s, left .35s, border-color .35s, background .35s;
+    }
+
+    .has-cursor .cursor-ring.on {
+        top: -27px;
+        left: -27px;
+        width: 54px;
+        height: 54px;
+        border-color: var(--accent);
+        background: rgba(138, 124, 255, .07);
+    }
+}
+
+/* ============================================================
+   Animation prep (only applied once the JS layer is live)
+============================================================ */
+.anim [data-fade] {
+    opacity: 0;
+}
+
+/* ============================================================
+   Responsive
+============================================================ */
+@media (max-width: 900px) {
+    .head-nav {
+        display: none;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .hero {
+        padding-top: 6rem;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        text-align: center;
+        justify-items: center;
+    }
+
+    .hero-portrait {
+        order: -1;
+    }
+
+    .hero-name {
+        font-size: clamp(3rem, 16vw, 5rem);
+    }
+
+    .hero-tag {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-cta {
+        justify-content: center;
+    }
+
+    .hero-socials {
+        display: none;
+    }
+
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .xp-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .xp-when {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: .4rem 1.2rem;
+        padding-top: 0;
+    }
+
+    .work-row {
+        grid-template-columns: 1fr;
+        gap: 1.4rem;
+    }
+
+    .work-row:nth-of-type(even) .work-media {
+        order: 0;
+    }
+
+    .skill-cols {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .channels {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .page-meta {
+        bottom: 1rem;
+        font-size: .56rem;
+    }
+
+    .grain {
+        animation: none;
+    }
+
+    /* mix-blend and backdrop-filter repaint every frame over the live
+       canvas, which reads as a faint shimmer on phones. Drop both on small
+       screens where they buy us the least. */
+    .site-head,
+    .page-meta {
+        mix-blend-mode: normal;
+    }
+
+    .orbit a {
+        backdrop-filter: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .profile-card {
+        width: clamp(190px, 52vw, 240px);
+    }
+
+    .orbit a {
+        --s: 40px;
+    }
+
+    .orbit a svg {
+        width: 15px;
+        height: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .grain,
+    .scroll-hint,
+    .orbit,
+    .orbit a,
+    .profile-card::before {
+        animation: none;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+}
